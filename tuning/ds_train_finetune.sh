@@ -1,9 +1,7 @@
 
 LR=1e-4
 
-MASTER_PORT=$(shuf -n 1 -i 10000-65535)
-
-deepspeed --num_gpus=4 --master_port $MASTER_PORT main.py \
+deepspeed --include="localhost:0,1,2,3" main.py \
     --deepspeed deepspeed.json \
     --do_train \
     --train_file AdvertiseGen/train.json \
@@ -23,6 +21,8 @@ deepspeed --num_gpus=4 --master_port $MASTER_PORT main.py \
     --max_steps 5000 \
     --logging_steps 10 \
     --save_steps 1000 \
+    --report_to "none" \
     --learning_rate $LR \
-    --fp16
+    --fp16 \
+    --report_to "none"
 

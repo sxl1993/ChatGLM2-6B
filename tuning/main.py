@@ -40,6 +40,7 @@ from transformers import (
     Seq2SeqTrainingArguments,
     set_seed,
 )
+from peft import get_peft_model, LoraConfig
 from trainer_seq2seq import Seq2SeqTrainer
 
 from arguments import ModelArguments, DataTrainingArguments
@@ -129,6 +130,18 @@ def main():
         # P-tuning v2
         model = model.half()
         model.transformer.prefix_encoder.float()
+    elif model_args.lora:
+        # lora
+        peft_config = LoraConfig(
+            task_type="CAUSAL_LM",
+            lora_alpha=2 * model_args.lora_rank,
+            target_modules=["query_key_value"],
+            inference_mode=False,
+            r=model_args.lora_rank,
+            lora_dropout=model_args.lora_dropout,
+        )
+        model = get_peft_model(model, peft_config)
+        model = model.float()
     else:
         # Finetune
         model = model.float()

@@ -59,7 +59,18 @@ class ModelArguments:
     prefix_projection: bool = field(
         default=False
     )
-
+    lora: Optional[bool] = field(
+        default=False, metadata={"help": "Whether to use LoRA technique"}
+    )
+    lora_path: str = field(
+        default=None, metadata={"help": "Initialize lora state dict."}
+    )
+    lora_rank: int = field(
+        default=8, metadata={"help": "Lora attention dimension"}
+    )
+    lora_dropout: float = field(
+        default=0.1, metadata={"help": "Lora dropout"}
+    )
 
 @dataclass
 class DataTrainingArguments:
