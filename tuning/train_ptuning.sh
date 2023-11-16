@@ -3,15 +3,15 @@
 PRE_SEQ_LEN=128
 LR=2e-2
 
-CUDA_VISIBLE_DEVICES=0 python3 main.py \
+XPU_VISIBLE_DEVICES=7 XACC=1 python3 main.py \
     --do_train \
     --train_file AdvertiseGen/train.json \
     --validation_file AdvertiseGen/dev.json \
     --prompt_column content \
     --response_column summary \
-    --preprocessing_num_workers 10 \
+    --preprocessing_num_workers 1 \
     --overwrite_cache \
-    --model_name_or_path THUDM/chatglm2-6b \
+    --model_name_or_path ./chatglm2-6b \
     --output_dir output/adgen-chatglm2-6b-pt-$PRE_SEQ_LEN-$LR \
     --overwrite_output_dir \
     --max_source_length 64 \

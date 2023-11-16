@@ -25,7 +25,7 @@ import json
 
 import numpy as np
 from datasets import load_dataset
-import jieba 
+import jieba
 from rouge_chinese import Rouge
 from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 import torch
@@ -40,7 +40,10 @@ from transformers import (
     Seq2SeqTrainingArguments,
     set_seed,
 )
-from peft import get_peft_model, LoraConfig
+try:
+    from peft import get_peft_model, LoraConfig
+except Exception as e:
+    print(e)
 from trainer_seq2seq import Seq2SeqTrainer
 
 from arguments import ModelArguments, DataTrainingArguments
@@ -128,10 +131,11 @@ def main():
         model = model.quantize(model_args.quantization_bit)
     if model_args.pre_seq_len is not None:
         # P-tuning v2
-        model = model.half()
+        model = model.float()
         model.transformer.prefix_encoder.float()
     elif model_args.lora:
         # lora
+        print("start lora ....")
         peft_config = LoraConfig(
             task_type="CAUSAL_LM",
             lora_alpha=2 * model_args.lora_rank,
@@ -164,7 +168,7 @@ def main():
     prompt_column = data_args.prompt_column
     response_column = data_args.response_column
     history_column = data_args.history_column
-    
+
     # Temporarily set max_target_length for training.
     max_target_length = data_args.max_target_length
 
@@ -213,7 +217,7 @@ def main():
                 context_length = len(a_ids)
                 input_ids = a_ids + b_ids + [tokenizer.eos_token_id]
                 labels = [tokenizer.pad_token_id] * context_length + b_ids + [tokenizer.eos_token_id]
-                
+
                 pad_len = max_seq_length - len(input_ids)
                 input_ids = input_ids + [tokenizer.pad_token_id] * pad_len
                 labels = labels + [tokenizer.pad_token_id] * pad_len
@@ -224,7 +228,7 @@ def main():
                 model_inputs["labels"].append(labels)
 
         return model_inputs
-    
+
     def print_dataset_example(example):
         print("input_ids", example["input_ids"])
         print("inputs", tokenizer.decode(example["input_ids"]))
@@ -320,7 +324,7 @@ def main():
             rouge = Rouge()
             scores = rouge.get_scores(' '.join(hypothesis) , ' '.join(reference))
             result = scores[0]
-            
+
             for k, v in result.items():
                 score_dict[k].append(round(v["f"] * 100, 4))
             bleu_score = sentence_bleu([list(label)], list(pred), smoothing_function=SmoothingFunction().method3)
